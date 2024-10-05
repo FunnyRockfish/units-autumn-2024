@@ -11,17 +11,16 @@
     "test": "jest",
     "test:watch": "npm test -- --watchAll",
     "test:update-snapshots": "npm test -- --updateSnapshot",
-    "open:coverage": "open ./coverage/index.html",
-    "preview": "vite preview"
+    "open:coverage": "open ./coverage/index.html"
   },
   "dependencies": {
-    "@testing-library/react-hooks": "^7.0.1",
     "classnames": "^2.3.2",
     "react": "^18.2.0",
     "react-dom": "^18.2.0"
   },
   "devDependencies": {
-    "@testing-library/jest-dom": "^5.17.0",
+    "@testing-library/dom": "^10.4.0",
+    "@testing-library/jest-dom": "^5.16.5",
     "@testing-library/react": "^14.3.1",
     "@types/jest": "^29.4.0",
     "@types/react": "^18.0.27",

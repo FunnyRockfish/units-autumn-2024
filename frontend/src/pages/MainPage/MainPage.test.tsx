@@ -1,112 +1,103 @@
-import React from 'react';
-import { render, fireEvent, act } from '@testing-library/react';
-import '@testing-library/jest-dom';
 import { MainPage } from './MainPage';
-import { useProducts } from '../../hooks';
-import { Product } from '../../types';
+import { render, fireEvent } from '@testing-library/react';
+import { useCurrentTime, useProducts } from '../../hooks';
+import React from 'react';
+import { applyCategories, updateCategories } from '../../utils';
+import { Categories } from '../../components';
 
-const products: Product[] = [
-    {
-        name: 'Iphone',
-        description: 'Iphone_desc',
-        price: 999,
-        priceSymbol: '$',
-        category: 'Электроника',
-        imgUrl: 'imageUrl_1',
-        id: 1,
-    },
-    {
-        name: 'lamp',
-        description: 'lamp_desc',
-        price: 150,
-        priceSymbol: '$',
-        category: 'Для дома',
-        imgUrl: 'imageUrl',
-        id: 2,
-    },
-];
+jest.mock('../../hooks');
+jest.mock('../../utils');
+jest.mock('../../components/Categories');
 
-jest.mock('../../hooks', () => ({
-    ...jest.requireActual('../../hooks'),
-    useProducts: jest.fn(),
-}));
-
-describe('MainPage test', () => {
-    let setIntervalSpy: jest.SpyInstance;
-    let clearIntervalSpy: jest.SpyInstance;
-
-    beforeEach(() => {
-        (useProducts as jest.Mock).mockReturnValue(products);
-
-        jest.useFakeTimers();
-        setIntervalSpy = jest.spyOn(global, 'setInterval');
-        clearIntervalSpy = jest.spyOn(global, 'clearInterval');
-        jest.spyOn(global, 'Date').mockImplementation(
-            () =>
-                ({
-                    toLocaleTimeString: () => '12:00:00',
-                } as unknown as Date)
-        );
-    });
-
+describe('test main page component', () => {
     afterEach(() => {
-        jest.clearAllTimers();
-        setIntervalSpy.mockRestore();
-        clearIntervalSpy.mockRestore();
-        (global.Date as unknown as jest.Mock).mockRestore();
+        jest.clearAllMocks();
     });
+    it('shoulds contain only 1 product with category Electronics', () => {
+        jest.mocked(useProducts).mockReturnValue([
+            {
+                id: 1,
+                name: 'IPhone 14 Pro',
+                description: 'Latest iphone, buy it now',
+                price: 999,
+                priceSymbol: '$',
+                category: 'Электроника',
+                imgUrl: '/iphone.png',
+            },
+            {
+                id: 2,
+                name: 'Костюм гуся',
+                description: 'Запускаем гуся, работяги',
+                price: 1000,
+                priceSymbol: '₽',
+                category: 'Одежда',
+            },
+            {
+                id: 3,
+                name: 'Настольная лампа',
+                description: 'Говорят, что ее использовали в pixar',
+                price: 699,
+                category: 'Для дома',
+                imgUrl: '/lamp.png',
+            },
+        ]);
+        jest.mocked(applyCategories).mockReturnValue([
+            {
+                id: 3,
+                name: 'Настольная лампа',
+                description: 'Говорят, что ее использовали в pixar',
+                price: 699,
+                category: 'Для дома',
+                imgUrl: '/lamp.png',
+            },
+        ]);
 
+        expect(useProducts).toHaveBeenCalledTimes(0);
+        expect(applyCategories).toHaveBeenCalledTimes(0);
 
-
-    it('should clear the interval on unmount', () => {
-        const { unmount } = render(<MainPage />);
-        expect(setIntervalSpy).toHaveBeenCalledTimes(1);
-
-        unmount();
-        expect(clearIntervalSpy).toHaveBeenCalledTimes(1);
-    });
-
-    it('should render correctly', () => {
         const rendered = render(<MainPage />);
 
         expect(rendered.asFragment()).toMatchSnapshot();
+        expect(applyCategories).toHaveBeenCalledTimes(1);
+        expect(useProducts).toHaveBeenCalledTimes(1);
     });
+    it('shoulds contain specified time', () => {
+        jest.mocked(useCurrentTime).mockReturnValue('2020-01-01');
+        expect(useCurrentTime).toHaveBeenCalledTimes(0);
 
-    it('should call callback when category click', () => {
-        const rendered = render(<MainPage />);
-        fireEvent.click(rendered.getAllByText('Для дома')[0]);
-        expect(rendered.getByText('lamp')).toBeInTheDocument();
-    });
-
-    it('should render ProductCard for everything after unselecting all categories', () => {
         const rendered = render(<MainPage />);
 
-        fireEvent.click(rendered.getAllByText('Для дома')[0]);
-        fireEvent.click(rendered.getAllByText('Для дома')[0]);
-        expect(rendered.getByText('Iphone')).toBeInTheDocument();
-        expect(rendered.getByText('lamp')).toBeInTheDocument();
+        expect(useCurrentTime).toHaveBeenCalledTimes(1);
+        expect(rendered.queryAllByText('2020-01-01')).toHaveLength(1);
     });
+    it('shoulds click on category', () => {
+        jest.mocked(updateCategories).mockReturnValue(['Для дома']);
+        jest.mocked(Categories).mockImplementation(
+            ({ selectedCategories, onCategoryClick }) => (
+                <div key="categories">
+                    <button
+                        data-testid="click-me"
+                        onClick={() => onCategoryClick?.('Для дома')}
+                    >
+                        Click me
+                    </button>
+                    <ul>
+                        {selectedCategories.map((category) => (
+                            <li key={category}>{category}</li>
+                        ))}
+                    </ul>
+                </div>
+            )
+        );
 
-    it('should render ProductCard for electronics', () => {
+        expect(updateCategories).toHaveBeenCalledTimes(0);
+
         const rendered = render(<MainPage />);
 
-        expect(rendered.getByText('lamp')).toBeInTheDocument();
-        expect(rendered.getByText('lamp_desc')).toBeInTheDocument();
-        expect(rendered.getByText('150 $')).toBeInTheDocument();
-        expect(rendered.getAllByText('Для дома')[0]).toBeInTheDocument();
-        expect(rendered.getByAltText('lamp')).toBeInTheDocument();
+        expect(rendered.queryAllByText('Для дома')).toHaveLength(1);
+        fireEvent.click(rendered.queryAllByTestId('click-me')[0]);
+        expect(updateCategories).toHaveBeenCalledTimes(1);
+        expect(updateCategories).toHaveBeenCalledWith([], 'Для дома');
+        expect(rendered.queryAllByText('Для дома')).toHaveLength(2);
     });
-
-    it('should render ProductCard for electronics', () => {
-        const rendered = render(<MainPage />);
-
-         fireEvent.click(rendered.getAllByText('Электроника')[0]);
-
-        expect(rendered.getByText('Iphone')).toBeInTheDocument();
-        expect(rendered.getByText('Iphone_desc')).toBeInTheDocument();
-        expect(rendered.getByText('999 $')).toBeInTheDocument();
-        expect(rendered.getAllByText('Электроника')[0]).toBeInTheDocument();
-        expect(rendered.getByAltText('Iphone')).toBeInTheDocument();
-    });
-
 });
