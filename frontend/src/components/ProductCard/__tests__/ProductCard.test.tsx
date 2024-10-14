@@ -4,7 +4,7 @@ import '@testing-library/jest-dom';
 import { ProductCard } from '../ProductCard';
 
 describe('ProductCard test', () => {
-    it('should render correctly', () => {
+    it('should render correctly with image', () => {
         const rendered = render(
              <ProductCard
                 name="Iphone"
@@ -13,6 +13,7 @@ describe('ProductCard test', () => {
                 priceSymbol="$"
                 category="Электроника"
                 id={2}
+                imgUrl="https://example.com/iphone.jpg"
             />
         );
 
@@ -28,6 +29,21 @@ describe('ProductCard test', () => {
                 priceSymbol="$"
                 category="Электроника"
                 id={2}
+            />
+        );
+
+        expect(rendered.asFragment()).toMatchSnapshot();
+    });
+
+    it('should render correctly without symbol', () => {
+        const rendered = render(
+            <ProductCard
+                name="Iphone"
+                description="Iphone_desc"
+                price={999}
+                category="Электроника"
+                id={2}
+                imgUrl="https://example.com/iphone.jpg"
             />
         );
 

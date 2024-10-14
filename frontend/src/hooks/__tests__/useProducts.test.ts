@@ -5,7 +5,7 @@ jest.mock('..');
 
 describe('test use products function', () => {
     afterEach(() => {
-        cleanup;
+        cleanup();
         jest.clearAllMocks();
     });
     it('should return correct products', () => {

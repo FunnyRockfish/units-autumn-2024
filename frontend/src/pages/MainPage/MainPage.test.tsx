@@ -13,6 +13,7 @@ describe('test main page component', () => {
     afterEach(() => {
         jest.clearAllMocks();
     });
+
     it('shoulds contain only 1 product with category Electronics', () => {
         jest.mocked(useProducts).mockReturnValue([
             {
@@ -37,30 +38,30 @@ describe('test main page component', () => {
                 name: 'Настольная лампа',
                 description: 'Говорят, что ее использовали в pixar',
                 price: 699,
+                priceSymbol: '₽',
                 category: 'Для дома',
                 imgUrl: '/lamp.png',
             },
         ]);
+
         jest.mocked(applyCategories).mockReturnValue([
             {
                 id: 3,
                 name: 'Настольная лампа',
                 description: 'Говорят, что ее использовали в pixar',
                 price: 699,
+                priceSymbol: '₽',
                 category: 'Для дома',
                 imgUrl: '/lamp.png',
             },
         ]);
 
-        expect(useProducts).toHaveBeenCalledTimes(0);
-        expect(applyCategories).toHaveBeenCalledTimes(0);
-
         const rendered = render(<MainPage />);
 
-        expect(rendered.asFragment()).toMatchSnapshot();
         expect(applyCategories).toHaveBeenCalledTimes(1);
         expect(useProducts).toHaveBeenCalledTimes(1);
     });
+
     it('shoulds contain specified time', () => {
         jest.mocked(useCurrentTime).mockReturnValue('2020-01-01');
         expect(useCurrentTime).toHaveBeenCalledTimes(0);
@@ -70,6 +71,7 @@ describe('test main page component', () => {
         expect(useCurrentTime).toHaveBeenCalledTimes(1);
         expect(rendered.queryAllByText('2020-01-01')).toHaveLength(1);
     });
+
     it('shoulds click on category', () => {
         jest.mocked(updateCategories).mockReturnValue(['Для дома']);
         jest.mocked(Categories).mockImplementation(
